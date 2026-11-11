@@ -1,0 +1,271 @@
+<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>МОГАЙ — Четырёхрукие боссы и улучшенный герой</title><style>*{box-sizing:border-box}body{margin:0;overflow:hidden;background:#101022;color:white;font-family:Arial,sans-serif;touch-action:none}canvas{display:block}#hud{position:absolute;top:12px;left:12px;background:#14142acb;padding:12px;border-radius:12px;font-weight:bold;line-height:1.8}#tip{position:absolute;top:12px;right:12px;font-size:12px;background:#14142acb;padding:8px;border-radius:8px}#stick{position:absolute;bottom:30px;left:25px;width:130px;height:130px;border-radius:50%;background:#ffffff26;border:3px solid #ffffff55;touch-action:none}#nub{position:absolute;width:54px;height:54px;border-radius:50%;background:#a68bff;left:35px;top:35px;box-shadow:0 0 18px #a68bff}#attack{position:absolute;right:25px;bottom:47px;width:110px;height:110px;border-radius:50%;border:4px solid #ffb2b2;background:#df3d65;color:white;font-weight:900;font-size:23px;touch-action:none}#overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#080817bb;flex-direction:column;text-align:center;padding:25px}#overlay h1{font-size:42px;margin:0 0 10px;color:#c6adff}#overlay p{max-width:340px;line-height:1.5}#start{border:0;border-radius:15px;background:#8c5cff;color:white;padding:17px 35px;font-size:22px;font-weight:bold}#attack:active{background:#ff6484}#economy{position:absolute;top:92px;left:12px;background:#14142add;padding:10px;border-radius:12px;font-weight:bold;z-index:2}#economy button{border:0;border-radius:9px;padding:10px;margin:5px 3px 0 0;background:#7049d9;color:white;font-weight:bold;font-size:15px}#shopOpen{background:#e3a82c!important;color:#211500!important}#shopPanel{display:none;position:absolute;z-index:12;inset:8% 5%;overflow:auto;background:#17132ff5;border:2px solid #b18bff;border-radius:20px;padding:18px;text-align:center;box-shadow:0 0 40px #0009}#shopPanel h2{margin:4px 0 12px}#shopPanel button{display:block;width:100%;max-width:340px;margin:10px auto;padding:14px;background:#6544ce;border:0;border-radius:12px;color:white;font-size:16px;font-weight:bold}#shopPanel #shopClose{background:#b83e61}#shopMessage{min-height:24px;color:#ffe18e}#wardrobe{position:absolute;top:195px;left:12px;z-index:3;display:flex;gap:6px;flex-wrap:wrap;max-width:300px}#wardrobe button{border:0;border-radius:9px;padding:10px;background:#7049d9;color:white;font-weight:bold}#shopPanel .item{border:1px solid #6c58a4;border-radius:12px;padding:10px;margin:10px auto;max-width:350px;background:#251c46}#shopPanel .item button{margin:6px auto}#shopPanel .item button:disabled{opacity:.65}#afk.active{background:#16895b}#afkNote{font-size:11px;color:#d9d3f7;margin-top:5px;max-width:200px}#abilities{position:absolute;right:12px;bottom:165px;display:flex;gap:8px;z-index:4}#abilities button{border:2px solid #bba7ff;background:#4c2a9e;color:white;border-radius:13px;padding:11px 8px;font-weight:bold;font-size:13px;min-width:86px}#abilities button:disabled{opacity:.45}#statsPanel{position:absolute;top:12px;right:10px;z-index:5;background:#17132fe8;padding:10px;border-radius:12px;font-size:12px;line-height:1.6;max-width:155px}#bossBar{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:min(80vw,380px);background:#321526;border:2px solid #ff6781;border-radius:12px;padding:7px;text-align:center;display:none;z-index:5;font-weight:bold}.bossTrack{height:12px;background:#3b2536;border-radius:8px;overflow:hidden}.bossFill{height:12px;background:linear-gradient(90deg,#ff3862,#ffab42);border-radius:8px;width:100%}@media(max-width:500px){#statsPanel{top:55px;right:8px;font-size:11px}#tip{display:none}} 
+/* Hide Shield and Network buttons as requested */
+#shieldBtn,#networkOpen,#networkPanel{display:none!important}
+</style></head><body><div id="hud">👤 <span id="nickLabel">Игрок</span><br>❤️ Здоровье: <span id="hp">200</span><br>👹 Врагов: <span id="count">5</span></div><div id="economy">🪙 Монеты: <span id="coins">0</span><div><button id="shopOpen">🛒 МАГАЗИН</button></div><div id="afkNote">🪙 Босс 1: +500 • Босс 2: +1000</div></div><div id="wardrobe"><button id="nicknameOpen">✏️ НИК</button><button id="skinsOpen">👕 СКИНЫ</button><button id="swordsOpen">⚔️ МЕЧИ</button><button id="armorOpen">🛡️ СНАРЯЖЕНИЕ</button></div><div id="shopPanel"><h2 id="shopTitle">🛒 МАГАЗИН МОГАЙ • НОВИНКИ</h2><p>🪙 Баланс: <span id="shopCoins">0</span></p><div id="shopItems"></div><p id="shopMessage"></p><button id="shopClose">❌ ЗАКРЫТЬ</button></div><div id="statsPanel">⭐ Уровень: <span id="playerLevel">1</span><br>✨ Опыт: <span id="xp">0</span>/<span id="xpNeed">100</span><br>⚔️ Урон: <span id="damageStat">1</span><br>🧟 Убито: <span id="kills">0</span><br>👹 Боссы: <span id="bossKills">0</span><br>🏆 Победы: <span id="wins">0</span></div><div id="bossBar"><div id="boss1row"><div>👹 БОСС 1 ❤️ <span id="boss1hp">290</span>/290</div><div class="bossTrack"><div id="boss1fill" class="bossFill" style="width:100%"></div></div></div><div id="boss2row" style="display:none"><div>🔥 БОСС 2 ❤️ <span id="boss2hp">300</span>/300</div><div class="bossTrack"><div id="boss2fill" class="bossFill" style="width:100%;background:#a855f7"></div></div></div></div><div id="tip">🕹️ Двигайся • ⚔️ Атакуй</div><div id="stick"><div id="nub"></div></div><div id="abilities"><button id="shieldBtn">🛡️ ЩИТ</button><button id="dash">⚡ РЫВОК</button><button id="wave">💜 ВОЛНА</button></div><button id="attack">⚔️<br>УДАР</button><div id="overlay"><h1>⚔️ МОГАЙ</h1><p>Победи зомби на уровне 1, затем зомби и двух боссов на уровне 2! У боссов 4 руки, 2 ноги, страшные лица, сильные удары и шипастые булавы! Герой получил новую экипировку! Получай опыт и повышай уровень игрока! У игрока есть способности «Рывок» и «Волна»! Двигайся джойстиком слева и нажимай «УДАР» справа.</p><button id="start">▶ ИГРАТЬ</button></div><script src="https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.min.js"></script><script>
+let coins=1800;try{coins=Math.max(0,parseInt(localStorage.getItem("mogai_coins")||"1800",10)||0)}catch(e){}const coinsEl=document.getElementById("coins");coinsEl.textContent=coins;
+let owned={skin_default:true,sword_default:true,armor_none:true},equippedSkin='skin_default',equippedSword='sword_default',equippedArmor='armor_none',speedBoost=false;
+try{let data=JSON.parse(localStorage.getItem('mogai_wardrobe')||'{}');owned={...owned,...(data.owned||{})};equippedSkin=data.equippedSkin||equippedSkin;equippedSword=data.equippedSword||equippedSword;speedBoost=!!data.speedBoost;equippedArmor=data.equippedArmor||equippedArmor}catch(e){}
+try{let old=JSON.parse(localStorage.getItem('mogai_upgrades')||'{}');if(old.sword)owned.sword_iron=true;if(old.skin)owned.skin_blue=true;if(old.costume)owned.skin_gold=true;if(old.speed)speedBoost=true}catch(e){}
+const catalog=[{id:'skin_ninja',name:'🥷 Ниндзя',cost:1800,category:'skins'},{id:'skin_cyber',name:'🤖 Кибергерой',cost:3400,category:'skins'},{id:'skin_sun',name:'☀️ Солнечный воин',cost:5200,category:'skins'},{id:'skin_frost',name:'🧊 Морозный страж',cost:6800,category:'skins'},{id:'skin_phantom',name:'👻 Фантом',cost:9200,category:'skins'},{id:'skin_royal',name:'👑 Король МОГАЙ',cost:14500,category:'skins'},{id:'armor_steel',name:'⚙️ Стальная броня',cost:2400,category:'armor',defense:4},{id:'armor_frost',name:'❄️ Ледяная броня',cost:6200,category:'armor',defense:7},{id:'armor_royal',name:'👑 Королевская броня',cost:12000,category:'armor',defense:9},{id:'armor_phantom',name:'👻 Броня фантома',cost:22000,category:'armor',defense:10},{id:'sword_ninja',name:'🥷 Клинок ниндзя',cost:2100,category:'swords',damage:6},{id:'sword_star',name:'⭐ Звёздный меч',cost:11000,category:'swords',damage:18},{id:'sword_royal',name:'👑 Клинок короля',cost:35000,category:'swords',damage:48},{id:'armor_none',name:'🧍 Без брони',cost:0,category:'armor',defense:0},{id:'armor_iron',name:'🛡️ Железная броня',cost:1500,category:'armor',defense:3},{id:'armor_diamond',name:'💎 Алмазная броня',cost:5000,category:'armor',defense:6},{id:'armor_lava',name:'🔥 Лавовая броня',cost:9000,category:'armor',defense:8},{id:'armor_cosmic',name:'🌌 Космическая броня',cost:16000,category:'armor',defense:9},{id:'skin_robot',name:'🤖 Робот',cost:1200,category:'skins'},{id:'skin_neon',name:'💚 Неоновый герой',cost:2200,category:'skins'},{id:'skin_knight',name:'🛡️ Рыцарь',cost:3500,category:'skins'},{id:'skin_pink',name:'💗 Розовый герой',cost:700,category:'skins'},{id:'skin_default',name:'🧍 Обычный скин',cost:0,category:'skins'},{id:'skin_blue',name:'💙 Синий скин',cost:300,category:'skins'},{id:'skin_gold',name:'👑 Золотой костюм',cost:800,category:'skins'},{id:'skin_shadow',name:'🖤 Теневой костюм',cost:1500,category:'skins'},{id:'skin_emerald',name:'💚 Изумрудный рыцарь',cost:2500,category:'skins'},{id:'skin_ice',name:'❄️ Ледяной воин',cost:4000,category:'skins'},{id:'skin_lava',name:'🌋 Лавовый король',cost:6500,category:'skins'},{id:'skin_galaxy',name:'🌌 Галактический герой',cost:10000,category:'skins'},{id:'sword_default',name:'🗡️ Обычный меч',cost:0,category:'swords',damage:1},{id:'sword_iron',name:'⚔️ Железный меч',cost:250,category:'swords',damage:2},{id:'sword_fire',name:'🔥 Огненный меч',cost:750,category:'swords',damage:3},{id:'sword_magic',name:'💜 Магический меч',cost:1500,category:'swords',damage:5},{id:'sword_ice',name:'❄️ Ледяной меч',cost:3000,category:'swords',damage:7},{id:'sword_lava',name:'🌋 Лавовый меч',cost:5000,category:'swords',damage:10},{id:'sword_dragon',name:'🐉 Меч дракона',cost:8000,category:'swords',damage:14},{id:'sword_cosmos',name:'🌠 Космический меч',cost:12000,category:'swords',damage:20},{id:'sword_thunder',name:'⚡ Громовой клинок',cost:18000,category:'swords',damage:28},{id:'sword_void',name:'🖤 Меч пустоты',cost:28000,category:'swords',damage:40},{id:'sword_king',name:'👑 Королевский меч',cost:45000,category:'swords',damage:60}];
+if(!owned[equippedArmor])equippedArmor='armor_none';if(!owned[equippedSkin])equippedSkin='skin_default';if(!owned[equippedSword])equippedSword='sword_default';
+function saveUpgrades(){try{localStorage.setItem('mogai_wardrobe',JSON.stringify({owned,equippedSkin,equippedSword,speedBoost,equippedArmor}))}catch(e){}}
+function addCoins(n){coins+=n;coinsEl.textContent=coins;document.getElementById('shopCoins').textContent=coins;try{localStorage.setItem('mogai_coins',String(coins))}catch(e){}}
+document.getElementById('shopCoins').textContent=coins;const shopPanel=document.getElementById('shopPanel'),shopMessage=document.getElementById('shopMessage');let category='skins';
+function openShop(c){category=c;shopPanel.style.display='block';renderShop()}
+document.getElementById('shopOpen').onclick=()=>openShop('shop');document.getElementById('skinsOpen').onclick=()=>openShop('skins');document.getElementById('swordsOpen').onclick=()=>openShop('swords');document.getElementById('armorOpen').onclick=()=>openShop('armor');document.getElementById('shopClose').onclick=()=>shopPanel.style.display='none';
+function renderShop(message=''){shopMessage.textContent=message;document.getElementById('shopTitle').textContent=category==='skins'?'👕 СКИНЫ И КОСТЮМЫ':category==='swords'?'⚔️ ВЫБОР МЕЧА':category==='armor'?'🛡️ СНАРЯЖЕНИЕ':'🛒 МАГАЗИН МОГАЙ';let items=document.getElementById('shopItems');items.replaceChildren();let choices=category==='shop'?[{id:'heal',name:'❤️ Лечение +50 HP',cost:30},{id:'speed',name:'⚡ Быстрый бег',cost:100},{id:'chest',name:'🎁 Сундук (случайные монеты)',cost:40},{id:'shield_upgrade',name:'🛡️ Усилить щит (+2 сек)',cost:90},{id:'megaheal',name:'💖 Большое лечение +100 HP',cost:65},{id:'fullheal',name:'💚 Полное лечение',cost:110},{id:'xp_pack',name:'✨ Опыт +100',cost:180},{id:'coin_box',name:'🎁 Большой сундук (50–350 монет)',cost:95}]:catalog.filter(x=>x.category===category);for(let item of choices){let div=document.createElement('div');div.className='item';let label=document.createElement('div');label.textContent=item.name+(item.damage?' • Урон '+item.damage:'')+(item.category==='armor'?' • Защита '+item.defense+'/10':'');let btn=document.createElement('button');let equipped=(item.category==='skins'&&equippedSkin===item.id)||(item.category==='swords'&&equippedSword===item.id)||(item.category==='armor'&&equippedArmor===item.id);btn.textContent=equipped?'✅ НАДЕТО':owned[item.id]?'👕 ВЫБРАТЬ':item.id==='speed'&&speedBoost?'✅ КУПЛЕНО':'🪙 КУПИТЬ — '+item.cost;btn.disabled=equipped||(item.id==='speed'&&speedBoost);btn.onclick=()=>buy(item);div.append(label,btn);items.append(div)}}
+function buy(item){if(owned[item.id]){if(item.category==='skins')equippedSkin=item.id;else if(item.category==='armor')equippedArmor=item.id;else equippedSword=item.id;applyLook();updateStats();saveUpgrades();renderShop('✅ Предмет надет!');return}if(item.id==='speed'&&speedBoost)return;if(coins<item.cost){renderShop('❌ Не хватает монет! Победи босса на 2-м уровне (+500 🪙).');return}if(item.id==='fullheal'){addCoins(-item.cost);hp=maxHp();hudHp.textContent=hp;renderShop('💚 Здоровье полностью восстановлено!');return}if(item.id==='xp_pack'){addCoins(-item.cost);gainXP(100);renderShop('✨ Получено 100 опыта!');return}if(item.id==='coin_box'){addCoins(-item.cost);let prize=50+Math.floor(Math.random()*301);addCoins(prize);renderShop('🎁 В сундуке '+prize+' монет!');return}if(item.id==='shield_upgrade'){addCoins(-item.cost);shieldExtra=Math.min(12,shieldExtra+2);renderShop('🛡️ Щит усилен до '+(4+shieldExtra)+' секунд');return}if(item.id==='megaheal'){addCoins(-item.cost);hp=Math.min(maxHp(),hp+100);hudHp.textContent=hp;renderShop('💖 Здоровье восстановлено');return}if(item.id==='heal'&&hp>=maxHp()){renderShop('❤️ Здоровье уже полное!');return}addCoins(-item.cost);let message='✅ Куплено!';if(item.id==='heal'){hp=Math.min(maxHp(),hp+50);hudHp.textContent=hp}else if(item.id==='speed')speedBoost=true;else if(item.id==='chest'){let prize=20+Math.floor(Math.random()*181);addCoins(prize);message='🎁 В сундуке '+prize+' монет!'}else{owned[item.id]=true;if(item.category==='skins')equippedSkin=item.id;else if(item.category==='armor')equippedArmor=item.id;else equippedSword=item.id;message='✅ Куплено и надето!'}applyLook();updateStats();saveUpgrades();renderShop(message)}
+function armorDefense(){return (catalog.find(x=>x.id===equippedArmor)?.defense||0)+(Date.now()<shieldUntil?35:0)}
+function refreshArmor(){if(!player)return;let old=player.getObjectByName('equipmentArmor');if(old){player.remove(old);old.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material)o.material.dispose()})}if(equippedArmor==='armor_none')return;let colors={armor_iron:0xaab9ce,armor_diamond:0x3de5f0,armor_lava:0xff6626,armor_cosmic:0xa86aff,armor_steel:0x748b9a,armor_frost:0x83e6ff,armor_royal:0xffd34c,armor_phantom:0x614b8d};let c=colors[equippedArmor]||0xaaaaaa;let g=new THREE.Group();g.name='equipmentArmor';let chest=box(1.08,.77,.68,c);chest.position.set(0,1.6,0);g.add(chest);let belt=box(1,.18,.72,0x303044);belt.position.set(0,1.16,0);g.add(belt);for(let side of [-1,1]){let shoulder=box(.49,.36,.65,c);shoulder.position.set(side*.66,1.9,0);g.add(shoulder);let boot=box(.38,.35,.46,c);boot.position.set(side*.22,.24,-.02);g.add(boot)}let helmet=box(.82,.26,.8,c);helmet.position.set(0,2.69,0);g.add(helmet);let crest=box(.22,.16,.15,0xffe78a);crest.position.set(0,1.65,-.37);g.add(crest);player.add(g)}
+function applyLook(){if(!player)return;let torso={skin_default:0x6546e8,skin_blue:0x167ce7,skin_gold:0xffc12d,skin_shadow:0x22212f,skin_emerald:0x00bb77,skin_ice:0x8eeaff,skin_lava:0xff5626,skin_galaxy:0x6026b8,skin_robot:0x8095aa,skin_neon:0x19ed65,skin_knight:0x546c8a,skin_pink:0xff69b4,skin_ninja:0x161821,skin_cyber:0x0bd3db,skin_sun:0xffc642,skin_frost:0x73d9ff,skin_phantom:0x51417e,skin_royal:0xf0b12c}[equippedSkin]||0x6546e8;let skinColor=equippedSkin==='skin_blue'?0x50baff:equippedSkin==='skin_shadow'?0x8d77a4:equippedSkin==='skin_emerald'?0x77ffd5:equippedSkin==='skin_ice'?0xc9f7ff:equippedSkin==='skin_lava'?0xffae62:equippedSkin==='skin_galaxy'?0xd49aff:equippedSkin==='skin_ninja'?0x9b9aa9:equippedSkin==='skin_cyber'?0x8bfaff:equippedSkin==='skin_sun'?0xffd59b:equippedSkin==='skin_frost'?0xd4faff:equippedSkin==='skin_phantom'?0xc3b0ef:equippedSkin==='skin_royal'?0xffe5ad:0xf2c59a;player.children[0].material.map=pixelTexture(torso,"cloth");player.children[1].material.map=pixelTexture(skinColor,"cloth");for(let i of [4,6])if(player.children[i])player.children[i].material.map=pixelTexture(skinColor,"cloth");let sword=player.children[7];if(sword&&sword.userData.refresh)sword.userData.refresh(equippedSword);refreshArmor() }
+let progress={xp:0,level:1,kills:0,bossKills:0,wins:0};try{Object.assign(progress,JSON.parse(localStorage.getItem('mogai_progress')||'{}'))}catch(e){}function xpNeed(){return progress.level*100}function updateStats(){document.getElementById('playerLevel').textContent=progress.level;document.getElementById('xp').textContent=progress.xp;document.getElementById('xpNeed').textContent=xpNeed();document.getElementById('damageStat').textContent=swordDamage();document.getElementById('kills').textContent=progress.kills;document.getElementById('bossKills').textContent=progress.bossKills;document.getElementById('wins').textContent=progress.wins;try{localStorage.setItem('mogai_progress',JSON.stringify(progress))}catch(e){}}function gainXP(n){progress.xp+=n;while(progress.xp>=xpNeed()){progress.xp-=xpNeed();progress.level++;hp=Math.min(maxHp(),hp+30);hudHp.textContent=hp;if(player)burst(player.position.x,player.position.z,0xffd700)}updateStats()}function maxHp(){return 200+(progress.level-1)*10}function swordDamage(){return (catalog.find(x=>x.id===equippedSword)?.damage||1)+Math.floor((progress.level-1)/2)+(localStorage.getItem("mogai_magic_ring")==="yes"?10:0)}function updateBossBar(){const n1=document.getElementById('boss1hp'),n2=document.getElementById('boss2hp'),f1=document.getElementById('boss1fill'),f2=document.getElementById('boss2fill');const bar=document.getElementById('bossBar');bar.style.display=boss&&playing?'block':'none';if(!boss)return;document.getElementById('boss1row').style.display=boss.stage===1?'block':'none';document.getElementById('boss2row').style.display=boss.stage===2?'block':'none';const val=Math.max(0,Math.ceil(boss.hp));if(boss.stage===1){n1.textContent=val;f1.style.width=(100*val/290)+'%'}else{n2.textContent=val;f2.style.width=(100*val/300)+'%'}}updateStats();
+let effects=[],victoryDance=false,dashCooldown=0,waveCooldown=0,specialRange=0,specialPower=0;let scene,camera,renderer,player,enemies=[],playing=false,hp=200,keys={},axis={x:0,y:0},last=0,attackTime=0,invuln=0,boss=null,level=1,bossStage=0;const hudHp=document.getElementById('hp'),hudCount=document.getElementById('count'),overlay=document.getElementById('overlay');
+const textureCache=new Map();
+function pixelTexture(color,kind){
+ const key=color+':'+kind;if(textureCache.has(key))return textureCache.get(key);
+ const canvas=document.createElement('canvas');canvas.width=64;canvas.height=64;
+ const ctx=canvas.getContext('2d');const base=new THREE.Color(color);
+ ctx.fillStyle='#'+base.getHexString();ctx.fillRect(0,0,64,64);
+ let seed=(color>>>0)+12345;function rand(){seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296}
+ for(let y=0;y<64;y+=8)for(let x=0;x<64;x+=8){
+  let v=(rand()-.5)*(kind==='grass'?.37:.23);
+  let c=base.clone().multiplyScalar(1+v);
+  ctx.fillStyle='#'+c.getHexString();ctx.fillRect(x,y,8,8);
+ }
+ if(kind==='wood'){
+  for(let x=5;x<64;x+=14){ctx.fillStyle='rgba(35,19,9,.24)';ctx.fillRect(x,0,3,64)}
+ }else if(kind==='stone'){
+  ctx.strokeStyle='rgba(25,24,37,.24)';ctx.lineWidth=2;
+  for(let y=0;y<64;y+=16){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(64,y);ctx.stroke()}
+ }else if(kind==='cloth'){
+  ctx.strokeStyle='rgba(255,255,255,.1)';ctx.lineWidth=1;
+  for(let i=0;i<64;i+=8){ctx.beginPath();ctx.moveTo(0,i);ctx.lineTo(64,i);ctx.stroke()}
+ }
+ const tex=new THREE.CanvasTexture(canvas);tex.magFilter=THREE.NearestFilter;tex.minFilter=THREE.NearestMipmapNearestFilter;
+ tex.colorSpace=THREE.SRGBColorSpace;textureCache.set(key,tex);return tex;
+}
+function box(w,h,d,color){
+ const kind=(color===0x55a96c?'grass':color===0x79502b?'wood':color===0x278f51?'grass':(color===0x9feaff||color===0xc0cbd6)?'stone':'cloth');
+ const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),new THREE.MeshStandardMaterial({color:0xffffff,map:pixelTexture(color,kind),roughness:.9}));
+ m.castShadow=true;m.receiveShadow=true;return m
+}
+
+// Пиксельные лица: глаза, нос, рот и брови.
+function faceTexture(kind){
+ const c=document.createElement('canvas');c.width=64;c.height=64;
+ const g=c.getContext('2d');g.imageSmoothingEnabled=false;
+ const rect=(x,y,w,h,color)=>{g.fillStyle=color;g.fillRect(x,y,w,h)};
+ if(kind==='hero'){
+  rect(9,16,16,8,'#fff');rect(39,16,16,8,'#fff');
+  rect(16,16,7,8,'#25213a');rect(42,16,7,8,'#25213a');
+  rect(9,10,16,4,'#493025');rect(39,10,16,4,'#493025');
+  rect(29,29,6,8,'#d59a77');rect(22,44,20,4,'#753e46');rect(26,48,12,3,'#b45b60');
+ }else if(kind==='zombie'){
+  rect(8,14,18,11,'#dfff9c');rect(38,14,18,11,'#dfff9c');
+  rect(16,14,9,11,'#ad242b');rect(39,14,9,11,'#ad242b');
+  rect(27,29,10,9,'#548b4c');rect(16,44,32,12,'#342632');
+  for(let x=19;x<48;x+=9)rect(x,44,5,6,'#eee8cb');
+ }else{
+  rect(7,14,20,12,'#ffdf44');rect(37,14,20,12,'#ffdf44');
+  rect(15,14,11,12,'#ff332c');rect(38,14,11,12,'#ff332c');
+  rect(27,30,10,8,'#7a2445');rect(15,46,34,9,'#210e2d');
+  for(let x=18;x<51;x+=10)rect(x,46,6,6,'#fff');
+ }
+ const tex=new THREE.CanvasTexture(c);tex.magFilter=THREE.NearestFilter;return tex;
+}
+function addFace(group,w,h,y,z,kind){
+ const mat=new THREE.MeshBasicMaterial({map:faceTexture(kind),transparent:true,side:THREE.DoubleSide,depthWrite:false});
+ const mesh=new THREE.Mesh(new THREE.PlaneGeometry(w,h),mat);
+ mesh.position.set(0,y,z);group.add(mesh);return mesh;
+}
+
+function createFancySword(){
+ const g=new THREE.Group();
+ const metal=(color,emissive=0)=>new THREE.MeshStandardMaterial({color,metalness:.8,roughness:.22,emissive,emissiveIntensity:emissive?.48:0});
+ function part(w,h,d,color,x,y,z,glow=0){let m=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),metal(color,glow));m.position.set(x,y,z);g.add(m);return m}
+ // Hilt, wrapped handle, pommel and jeweled crossguard
+ part(.13,.5,.15,0x34233d,0,-.64,0);for(let i=0;i<4;i++)part(.15,.035,.17,0xe3b96c,0,-.82+i*.12,0);
+ part(.27,.16,.25,0xf2cf7d,0,-.93,0);part(.7,.13,.22,0xe5bb57,0,-.34,0);
+ for(let side of [-1,1]){let wing=part(.17,.26,.22,0xf4d17b,side*.32,-.28,0);wing.rotation.z=side*.4}
+ let gem=part(.18,.18,.27,0x76f6ff,0,-.34,-.02,0x23b9ee);gem.rotation.z=Math.PI/4;
+ // Double-edge blade, central ridge, bright tapered tip
+ let blade=part(.25,1.28,.13,0x9feaff,0,.37,0,0x3d9fff);
+ let ridge=part(.055,1.17,.16,0xe7ffff,0,.34,-.005,0x6acbff);
+ let tip=part(.19,.28,.13,0x9feaff,0,1.13,0,0x3d9fff);tip.rotation.z=Math.PI/4;
+ let rune=part(.065,.3,.17,0xffffff,0,.48,-.01,0x89dfff);
+ let spark=part(.11,.11,.22,0xffffff,0,.82,0,0x7bdfff);spark.rotation.z=Math.PI/4;
+ g.userData.refresh=(id)=>{let palettes={sword_default:[0xa4d9e7,0xd9f6ff,0x517c9a],sword_iron:[0x9ba8b6,0xf5f8ff,0x596978],sword_fire:[0xff531c,0xffdd64,0xff3300],sword_magic:[0x9e4aff,0xf4b9ff,0x9b26ff],sword_ice:[0x65eaff,0xf3ffff,0x2dd9ff],sword_lava:[0xff6a00,0xfff04c,0xff3d00],sword_dragon:[0x31dd7d,0xc7ff84,0x18e66c],sword_cosmos:[0x993aff,0xff8ef9,0x6226ff],sword_thunder:[0xffe448,0xffffff,0x4bc8ff],sword_void:[0x222233,0xa44bff,0x120b29],sword_king:[0xffd03d,0xfff8d1,0xdb7518]};let c=palettes[id]||palettes.sword_default;blade.material=metal(c[0],c[2]);tip.material=metal(c[0],c[2]);ridge.material=metal(c[1],c[2]);rune.material=metal(c[1],c[2]);gem.material=metal(c[1],c[2]);spark.material=metal(c[1],c[2]);};
+ g.userData.refresh('sword_default');return g;
+}
+function init(){scene=new THREE.Scene();scene.background=new THREE.Color(0x9fc5f7);scene.fog=new THREE.Fog(0x9fc5f7,25,65);camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,100);renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.shadowMap.enabled=true;document.body.prepend(renderer.domElement);scene.add(new THREE.HemisphereLight(0xffffff,0x53648a,2));let light=new THREE.DirectionalLight(0xffffff,2);light.position.set(8,15,6);light.castShadow=true;scene.add(light);let ground=box(44,.5,44,0x55a96c);ground.position.y=-.25;scene.add(ground);for(let i=0;i<26;i++){let x=Math.random()*40-20,z=Math.random()*40-20;if(Math.hypot(x,z)<5)continue;let trunk=box(.6,2,.6,0x79502b);trunk.position.set(x,1,z);scene.add(trunk);let leaf=box(2,2,2,0x278f51);leaf.position.set(x,2.8,z);scene.add(leaf)}player=new THREE.Group();let torso=box(.85,1.1,.5,0x6546e8);torso.position.y=1.45;player.add(torso);let head=box(.7,.7,.7,0xf2c59a);head.position.y=2.35;player.add(head);let hair=box(.74,.18,.74,0x34211c);hair.position.y=2.76;player.add(hair);for(let s of [-1,1]){let leg=box(.32,.85,.36,0x28335e);leg.position.set(s*.22,.45,0);player.add(leg);let arm=box(.27,.9,.35,0xf2c59a);arm.position.set(s*.64,1.5,0);player.add(arm)}let sword=createFancySword();sword.position.set(.85,1.55,-.5);sword.rotation.x=.6;player.add(sword);addFace(player,.68,.68,2.35,-.356,"hero");// Улучшенный герой: волосы, пояс, перчатки, сапоги и светящийся амулет.
+ const hairExtra=box(.78,.16,.77,0x33203b);hairExtra.position.set(0,2.74,0);player.add(hairExtra);
+ const belt=box(.96,.16,.72,0x28233f);belt.position.set(0,1.18,0);player.add(belt);
+ for(const side of [-1,1]){
+   const glove=box(.32,.26,.36,0x34304f);glove.position.set(side*.72,.92,0);player.add(glove);
+   const boot=box(.4,.28,.5,0x2c2b48);boot.position.set(side*.22,.2,-.08);player.add(boot);
+ }
+ const pendant=new THREE.Mesh(new THREE.OctahedronGeometry(.14),new THREE.MeshStandardMaterial({color:0x78f6ff,emissive:0x25caff,emissiveIntensity:1.2}));pendant.position.set(0,1.72,-.4);player.add(pendant);
+ scene.add(player);applyLook();spawn();window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});requestAnimationFrame(loop)}
+function spawn(){victoryDance=false;if(boss){scene.remove(boss.mesh);boss=null}enemies.forEach(e=>scene.remove(e.mesh));enemies=[];for(let i=0;i<(level===1?5:7);i++){let group=new THREE.Group();let body=box(.9,1.3,.7,0xdb424f);body.position.y=1.1;group.add(body);let head=box(.75,.75,.75,0x77bd6b);head.position.y=2.15;group.add(head);let eye=box(.45,.12,.06,0xfafafa);eye.position.set(0,2.22,-.4);group.add(eye);for(let side of [-1,1]){let arm=box(.26,.85,.3,0x79bd6b);arm.position.set(side*.65,1.25,-.1);group.add(arm);let leg=box(.3,.65,.35,0x354a7c);leg.position.set(side*.23,.33,0);group.add(leg)}let a=i*Math.PI*2/(level===1?5:7);group.position.set(Math.cos(a)*11,0,Math.sin(a)*11);addFace(group,.73,.73,2.15,-.381,"zombie");scene.add(group);enemies.push({mesh:group,hp:level===1?3:5,hit:0})}hudCount.textContent="Ур. "+level+" 🧟 "+enemies.length;document.getElementById("tip").textContent=level===1?"🧟 Уровень 1: победи 5 зомби!":"🧟 Уровень 2: зомби и 2 босса!"}
+// Булава босса: рукоять, шипастая головка и светящийся камень.
+function createBossMace(stage){
+ const g=new THREE.Group();
+ const metal=new THREE.MeshStandardMaterial({color:stage===2?0x55556d:0x777b89,metalness:.85,roughness:.25});
+ const dark=new THREE.MeshStandardMaterial({color:0x31263d,roughness:.75});
+ const glow=new THREE.MeshStandardMaterial({color:stage===2?0xff572c:0xb75cff,emissive:stage===2?0xe52b0a:0x7824ff,emissiveIntensity:.9});
+ const shaft=new THREE.Mesh(new THREE.CylinderGeometry(.11,.14,2.1,8),dark);shaft.position.y=.65;g.add(shaft);
+ const grip=new THREE.Mesh(new THREE.CylinderGeometry(.15,.15,.75,8),metal);grip.position.y=.02;g.add(grip);
+ const head=new THREE.Mesh(new THREE.DodecahedronGeometry(.55,0),metal);head.position.y=1.85;g.add(head);
+ for(let i=0;i<8;i++){let a=i*Math.PI/4;let spike=new THREE.Mesh(new THREE.ConeGeometry(.19,.58,5),metal);spike.position.set(Math.cos(a)*.62,1.85,Math.sin(a)*.62);spike.rotation.z=-Math.cos(a)*Math.PI/2;spike.rotation.x=Math.sin(a)*Math.PI/2;g.add(spike)}
+ const top=new THREE.Mesh(new THREE.ConeGeometry(.23,.65,6),metal);top.position.y=2.52;g.add(top);
+ const gem=new THREE.Mesh(new THREE.OctahedronGeometry(.25),glow);gem.position.set(0,1.85,-.53);g.add(gem);
+ g.traverse(o=>{if(o.isMesh)o.castShadow=true});return g;
+}
+function spawnBoss(){bossStage++;let g=new THREE.Group();let body=box(bossStage===2?2.8:2,bossStage===2?3.5:2.7,1.4,bossStage===2?0xd92323:0x8c28bd);body.position.y=1.65;g.add(body);let head=box(1.7,1.5,1.5,0x42145c);head.position.y=3.65;g.add(head);let crown=box(2,.5,1.8,0xffc12d);crown.position.y=4.65;g.add(crown);let eyes=box(1.1,.2,.1,0xff3333);eyes.position.set(0,3.8,-.8);g.add(eyes);// Яркое лицо: красные глаза, брови, зубы и шрамы.
+ g.position.set(0,0,-12);
+ // Лицо видно с обеих сторон головы, в том числе со стороны камеры.
+ addFace(g,1.65,1.45,3.65,-.766,"boss");
+ const frontFace=addFace(g,1.65,1.45,3.65,.766,"boss");frontFace.rotation.y=Math.PI;
+ // Выступающий нос и устрашающие клыки.
+ for(const sign of [-1,1]){
+   const nose=box(.24,.26,.2,0x7a2445);nose.position.set(0,3.48,sign*.88);g.add(nose);
+   for(const x of [-.48,-.24,.24,.48]){
+     const fang=new THREE.Mesh(new THREE.ConeGeometry(.085,.27,4),new THREE.MeshBasicMaterial({color:0xf7f4e6}));
+     fang.rotation.z=Math.PI;fang.position.set(x,3.19,sign*.84);g.add(fang);
+   }
+ }
+
+ // Объёмные рога и светящиеся глаза поверх текстуры лица.
+ for(const side of [-1,1]){let horn=new THREE.Mesh(new THREE.ConeGeometry(.23,.85,6),new THREE.MeshStandardMaterial({color:0x282039,roughness:.65}));horn.position.set(side*.66,4.72,0);g.add(horn);let glowEye=new THREE.Mesh(new THREE.BoxGeometry(.24,.16,.065),new THREE.MeshBasicMaterial({color:bossStage===2?0xff4411:0xff2255}));glowEye.position.set(side*.38,3.82,-.805);g.add(glowEye);let frontEye=glowEye.clone();frontEye.position.z=.805;g.add(frontEye)}
+ const maceArm=new THREE.Group();maceArm.position.set(bossStage===2?1.85:1.45,3.15,0);
+ const arm=box(.48,1.5,.55,bossStage===2?0x9e2525:0x673088);arm.position.y=-.65;maceArm.add(arm);
+ const mace=createBossMace(bossStage);mace.position.set(0,-1.2,-.25);mace.rotation.z=-.4;maceArm.add(mace);g.add(maceArm);
+ // Четыре руки (две пары) и две ноги, все конечности анимируются.
+ const extraLimbs=[];
+ for(const side of [-1,1]){
+   for(let row=0;row<2;row++){
+     if(side===1&&row===0)continue; // правая верхняя рука уже держит булаву
+     const limb=new THREE.Group();limb.position.set(side*(bossStage===2?1.85:1.45),3.12-row*.95,0);
+     const upper=box(.48,1.25,.55,bossStage===2?0xbb3838:0x7535a4);upper.position.y=-.55;limb.add(upper);
+     const fist=box(.58,.43,.62,0x45405a);fist.position.y=-1.2;limb.add(fist);
+     g.add(limb);extraLimbs.push({mesh:limb,side,row});
+   }
+ }
+ const bossLegs=[];
+ for(const side of [-1,1]){
+   const leg=new THREE.Group();leg.position.set(side*.65,.7,0);
+   const shin=box(.7,1.4,.82,bossStage===2?0x77222c:0x462368);shin.position.y=-.55;leg.add(shin);
+   const foot=box(.86,.3,1.1,0x262337);foot.position.set(0,-1.25,-.18);leg.add(foot);
+   g.add(leg);bossLegs.push(leg);
+ }
+ scene.add(g);boss={extraLimbs,bossLegs,mesh:g,hp:bossStage===2?300:290,maxHp:bossStage===2?300:290,hit:0,stage:bossStage,maceArm:maceArm};hudCount.textContent="👑 БОСС "+bossStage+" / 2";updateBossBar();document.getElementById('tip').textContent=bossStage===2?"🔥 Босс 2: 300 HP, урон 48, награда 1000 🪙":"👑 Босс 1: 290 HP, урон 32, награда 500 🪙"}
+function end(win){victoryDance=win;playing=false;updateBossBar();overlay.style.display='flex';overlay.querySelector('h1').textContent=win?'🏆 ПОБЕДА!':'💀 ПОРАЖЕНИЕ';overlay.querySelector('p').textContent=win?'Ты победил двух боссов! За второго получил 1000 монет!':'Попробуй ещё раз и держись подальше от врагов.';document.getElementById('start').textContent='🔄 ИГРАТЬ СНОВА'}
+function burst(x,z,color=0xffd56c){if(!scene)return;for(let i=0;i<9;i++){let m=box(.14,.14,.14,color);m.position.set(x,1+Math.random()*1.5,z);scene.add(m);effects.push({mesh:m,life:.45,vx:(Math.random()-.5)*7,vy:Math.random()*5,vz:(Math.random()-.5)*7})}}function attack(){if(!playing||attackTime>0)return;attackTime=.35;enemies.forEach(e=>{let dx=e.mesh.position.x-player.position.x,dz=e.mesh.position.z-player.position.z;if(Math.hypot(dx,dz)<(specialRange||2.8)){e.hp+=-(swordDamage()+(specialPower||0));e.hit=.18;burst(e.mesh.position.x,e.mesh.position.z,0x88ffbb);e.mesh.position.x+=dx*.18;e.mesh.position.z+=dz*.18}});enemies=enemies.filter(e=>{if(e.hp<=0){scene.remove(e.mesh);progress.kills++;gainXP(25);return false}return true});hudCount.textContent="Ур. "+level+" 🧟 "+enemies.length;if(!enemies.length&&!boss){if(level===1){level=2;hp=maxHp();hudHp.textContent=hp;player.position.set(0,0,0);spawn()}else spawnBoss()}if(boss&&Math.hypot(boss.mesh.position.x-player.position.x,boss.mesh.position.z-player.position.z)<(specialRange||3.6)){boss.hp-=swordDamage()+(specialPower||0);boss.hit=.2;updateBossBar();burst(boss.mesh.position.x,boss.mesh.position.z,0xff9b22);if(boss.hp<=0){let stage=boss.stage;burst(boss.mesh.position.x,boss.mesh.position.z,0xffd700);scene.remove(boss.mesh);boss=null;progress.bossKills++;gainXP(stage===1?150:300);addCoins(stage===1?500:1000);updateBossBar();if(stage===1){document.getElementById('boss1hp').textContent='0';document.getElementById('boss1fill').style.width='0%';hp=maxHp();hudHp.textContent=hp;player.position.set(0,0,0);spawnBoss()}else{document.getElementById('boss2hp').textContent='0';document.getElementById('boss2fill').style.width='0%';progress.wins++;updateStats();end(true)}}}}
+function useDash(){if(!playing||dashCooldown>0)return;dashCooldown=5;let dx=axis.x+(keys['ArrowRight']||keys['d']?1:0)-(keys['ArrowLeft']||keys['a']?1:0),dz=axis.y+(keys['ArrowDown']||keys['s']?1:0)-(keys['ArrowUp']||keys['w']?1:0);let d=Math.hypot(dx,dz);if(d<.15){dx=-Math.sin(player.rotation.y);dz=-Math.cos(player.rotation.y);d=1}player.position.x=THREE.MathUtils.clamp(player.position.x+dx/d*5,-20,20);player.position.z=THREE.MathUtils.clamp(player.position.z+dz/d*5,-20,20);invuln=Math.max(invuln,.55);burst(player.position.x,player.position.z,0x54ddff)}
+function useWave(){if(!playing||waveCooldown>0)return;waveCooldown=9;specialRange=7;specialPower=5;attackTime=0;burst(player.position.x,player.position.z,0xb77aff);attack();specialRange=0;specialPower=0}
+const dashButton=document.getElementById('dash'),waveButton=document.getElementById('wave');dashButton.addEventListener('pointerdown',e=>{e.preventDefault();useDash()});waveButton.addEventListener('pointerdown',e=>{e.preventDefault();useWave()});
+function loop(t){requestAnimationFrame(loop);let dt=Math.min((t-last)/1000||0,.05);last=t;for(let i=effects.length-1;i>=0;i--){let f=effects[i];f.life-=dt;f.mesh.position.x+=f.vx*dt;f.mesh.position.y+=f.vy*dt;f.mesh.position.z+=f.vz*dt;f.vy-=13*dt;f.mesh.scale.setScalar(Math.max(.05,f.life/.45));if(f.life<=0){scene.remove(f.mesh);effects.splice(i,1)}}if(player){let moving=playing&&(Math.abs(axis.x)+Math.abs(axis.y)>0.1||keys['ArrowRight']||keys['ArrowLeft']||keys['ArrowUp']||keys['ArrowDown']||keys['w']||keys['a']||keys['s']||keys['d']);let swing=moving?Math.sin(t*.012)*.65:0;for(let i of [3,5])player.children[i].rotation.x=(i===3?1:-1)*swing;player.children[4].rotation.x=swing;player.children[6].rotation.x=-swing;player.children[7].rotation.z=attackTime>0?-1.35*Math.sin((.35-attackTime)/.35*Math.PI):.1;player.children[7].rotation.x=.6+(attackTime>0?1.3*Math.sin((.35-attackTime)/.35*Math.PI):0);player.position.y=victoryDance?Math.abs(Math.sin(t*.008))*.65:0;if(victoryDance){player.children[4].rotation.z=-1.8;player.children[6].rotation.z=1.8}else{player.children[4].rotation.z=0;player.children[6].rotation.z=0}}if(playing){dashCooldown=Math.max(0,dashCooldown-dt);waveCooldown=Math.max(0,waveCooldown-dt);dashButton.disabled=dashCooldown>0;waveButton.disabled=waveCooldown>0;dashButton.textContent=dashCooldown>0?'⚡ '+Math.ceil(dashCooldown)+'с':'⚡ РЫВОК';waveButton.textContent=waveCooldown>0?'💜 '+Math.ceil(waveCooldown)+'с':'💜 ВОЛНА';attackTime=Math.max(0,attackTime-dt);invuln=Math.max(0,invuln-dt);let x=axis.x+(keys['ArrowRight']||keys['d']?1:0)-(keys['ArrowLeft']||keys['a']?1:0),z=axis.y+(keys['ArrowDown']||keys['s']?1:0)-(keys['ArrowUp']||keys['w']?1:0);let l=Math.hypot(x,z);if(l>.1){player.position.x+=x/l*(speedBoost?9:6)*dt;player.position.z+=z/l*(speedBoost?9:6)*dt;player.rotation.y=Math.atan2(-x,-z)}player.position.x=THREE.MathUtils.clamp(player.position.x,-20,20);player.position.z=THREE.MathUtils.clamp(player.position.z,-20,20);for(let e of enemies){let dx=player.position.x-e.mesh.position.x,dz=player.position.z-e.mesh.position.z,dist=Math.hypot(dx,dz);if(dist>1.15){e.mesh.position.x+=dx/dist*1.55*dt;e.mesh.position.z+=dz/dist*1.55*dt}e.mesh.rotation.y=Math.atan2(-dx,-dz);let walk=Math.sin(t*.007+e.mesh.position.x)*.6;e.mesh.children[3].rotation.x=walk;e.mesh.children[4].rotation.x=walk;e.mesh.children[5].rotation.x=-walk;e.mesh.children[6].rotation.x=-walk;e.hit=Math.max(0,e.hit-dt);e.mesh.children[0].material.color.setHex(e.hit>0?0xffdddd:0xffffff);if(dist<1.35&&invuln<=0){hp-=Math.max(1,10-armorDefense());hudHp.textContent=hp;invuln=.85;if(hp<=0)end(false)}}if(boss){let dx=player.position.x-boss.mesh.position.x,dz=player.position.z-boss.mesh.position.z,dist=Math.hypot(dx,dz);if(dist>2){boss.mesh.position.x+=dx/dist*1.1*dt;boss.mesh.position.z+=dz/dist*1.1*dt}boss.mesh.children[2].rotation.y=Math.sin(t*.003)*.15;updateBossBar();boss.maceArm.rotation.z=-.35+Math.sin(t*.006)*.65;boss.extraLimbs.forEach((a,i)=>{a.mesh.rotation.z=a.side*(.12+Math.sin(t*.004+i)*.24);a.mesh.rotation.x=Math.sin(t*.006+i*1.8)*.35});boss.bossLegs.forEach((leg,i)=>{leg.rotation.x=Math.sin(t*.005+i*Math.PI)*.4});boss.maceArm.rotation.x=dist<3?Math.sin(t*.012)*.7:0;boss.mesh.scale.setScalar(1+Math.sin(t*.004)*.045);boss.hit=Math.max(0,boss.hit-dt);boss.mesh.children[0].material.color.setHex(boss.hit>0?0xffdddd:0xffffff);if(dist<2.3&&invuln<=0){hp-=Math.max(1,(boss.stage===2?48:32)-armorDefense());hudHp.textContent=hp;invuln=1;if(hp<=0)end(false)}}player.visible=invuln<=0||Math.floor(t/90)%2===0}camera.position.lerp(new THREE.Vector3(player.position.x+0,12,player.position.z+14),.1);camera.lookAt(player.position.x,1,player.position.z);renderer.render(scene,camera)}
+document.getElementById('start').onclick=()=>{victoryDance=false;document.getElementById('boss1hp').textContent='290';document.getElementById('boss2hp').textContent='300';document.getElementById('boss1fill').style.width='100%';document.getElementById('boss2fill').style.width='100%';if(!scene)init();hp=maxHp();level=1;bossStage=0;dashCooldown=0;waveCooldown=0;hudHp.textContent=hp;player.position.set(0,0,0);spawn();playing=true;updateBossBar();overlay.style.display='none'};document.getElementById('attack').addEventListener('pointerdown',e=>{e.preventDefault();attack()});window.addEventListener('keydown',e=>{keys[e.key]=true;if(e.code==='Space')attack();if(e.key==='Shift')useDash();if(e.key==='e'||e.key==='E')useWave()});window.addEventListener('keyup',e=>keys[e.key]=false);let stick=document.getElementById('stick'),nub=document.getElementById('nub');function moveStick(e){let r=stick.getBoundingClientRect(),x=e.clientX-(r.left+r.width/2),y=e.clientY-(r.top+r.height/2),d=Math.max(1,Math.hypot(x,y)),v=Math.min(1,d/48);axis.x=x/d*v;axis.y=y/d*v;nub.style.transform=`translate(${axis.x*45}px,${axis.y*45}px)`}stick.addEventListener('pointerdown',e=>{stick.setPointerCapture(e.pointerId);moveStick(e)});stick.addEventListener('pointermove',e=>{if(stick.hasPointerCapture(e.pointerId))moveStick(e)});function reset(){axis.x=axis.y=0;nub.style.transform='translate(0,0)'}stick.addEventListener('pointerup',reset);stick.addEventListener('pointercancel',reset);
+</script><style>
+#extraMenu{position:fixed;bottom:165px;left:10px;z-index:16;display:flex;flex-direction:column;gap:7px}
+#extraMenu button,.extraPanel button{background:#5935a4;color:white;border:1px solid #c9aaff;border-radius:10px;padding:10px;font-weight:bold}
+#extraMenu button{font-size:12px;max-width:128px}
+.extraPanel{display:none;position:fixed;z-index:35;left:5%;right:5%;top:16%;max-height:72%;overflow:auto;background:#17122ef7;border:2px solid #b18bff;border-radius:16px;padding:17px;text-align:center;box-shadow:0 8px 30px #000b}
+.extraPanel input{width:100%;max-width:330px;font-size:18px;padding:12px;margin:10px auto;border-radius:9px;border:0;color:#111}
+.extraPanel p{line-height:1.5}#cmdResult{color:#ffe188;min-height:24px}#cmdPanel{top:9%}
+@media(max-width:500px){#extraMenu{bottom:175px}#extraMenu button{padding:8px;font-size:11px}}
+
+/* Hide Shield and Network buttons as requested */
+#shieldBtn,#networkOpen,#networkPanel{display:none!important}
+</style>
+<div id="extraMenu"><button id="networkOpen">🌐 СЕТЬ</button><button id="cmdOpen">👑 АДМИН-КОНСОЛЬ</button></div>
+<div id="networkPanel" class="extraPanel"><h2>🌐 СЕТЬ МОГАЙ</h2><p id="networkStatus">🎮 Одиночная игра — работает без сервера.</p><p>Чтобы играть с друзьями по сети, нужен отдельный игровой сервер. Эта кнопка показывает статус, но не подключает игроков.</p><button id="networkClose">ЗАКРЫТЬ</button></div>
+<div id="pinPanel" class="extraPanel"><h2>👑 Доступ к консоли</h2><p id="pinInfo">При первом открытии придумай PIN из 4–8 цифр. Он сохранится на этом устройстве.</p><input id="pinInput" type="password" inputmode="numeric" maxlength="8" placeholder="PIN: 4–8 цифр"><div><button id="pinEnter">ОТКРЫТЬ</button><button id="pinClose">ЗАКРЫТЬ</button></div></div>
+<div id="cmdPanel" class="extraPanel"><h2>👑 КОНСОЛЬ МОГАЙ</h2><p>Команды: /help, /money 0, /money 10, /balance 0, /heal, /boss, /boss2, /give staff2, /give ring, /skin, /killboss, /level 10, /resetall</p><input id="cmdInput" placeholder="/help" autocomplete="off"><div><button id="cmdSend">ВВЕСТИ</button><button id="cmdClose">ЗАКРЫТЬ</button></div><p id="cmdResult"></p></div>
+<script>
+(function(){
+const by=id=>document.getElementById(id),pinPanel=by('pinPanel'),cmdPanel=by('cmdPanel'),input=by('cmdInput'),result=by('cmdResult');
+const close=p=>p.style.display='none';
+by('networkOpen').onclick=()=>{by('networkPanel').style.display='block'};
+by('networkClose').onclick=()=>close(by('networkPanel'));
+by('cmdOpen').onclick=()=>{by('pinInput').value='';by('pinInfo').textContent=localStorage.getItem('mogai_admin_pin')?'Введи свой PIN для доступа.':'Придумай PIN из 4–8 цифр для этой копии игры.';pinPanel.style.display='block'};
+by('pinClose').onclick=()=>close(pinPanel);
+by('pinEnter').onclick=()=>{
+ const val=by('pinInput').value,stored=localStorage.getItem('mogai_admin_pin');
+ if(!/^[0-9]{4,8}$/.test(val)){by('pinInfo').textContent='Нужно 4–8 цифр.';return}
+ if(stored&&stored!==val){by('pinInfo').textContent='❌ Неверный PIN';return}
+ if(!stored)localStorage.setItem('mogai_admin_pin',val);
+ close(pinPanel);cmdPanel.style.display='block';input.focus();
+};
+by('cmdClose').onclick=()=>close(cmdPanel);
+
+function run(){
+ const c=input.value.trim().toLowerCase();
+ try{
+  if(c==='/help'){result.textContent='Команды: /money 0, /money 10, /balance 0, /heal, /boss, /boss2, /give staff2, /give ring, /skin, /killboss, /level 10, /resetall';}
+  else if(c==='/resetall'){
+    result.textContent='⚠️ Сбросить монеты, скины, мечи, броню, кольцо, улучшения и статистику? Для подтверждения введи /resetall confirm';
+  }
+  else if(c==='/resetall confirm'){
+    owned={skin_default:true,sword_default:true,armor_none:true};
+    equippedSkin='skin_default';equippedSword='sword_default';equippedArmor='armor_none';speedBoost=false;
+    shieldUntil=0;shieldExtra=0;shieldCooldown=0;
+    coins=1800;coinsEl.textContent='1800';document.getElementById('shopCoins').textContent='1800';
+    progress={xp:0,level:1,kills:0,bossKills:0,wins:0};
+    try{
+      localStorage.removeItem('mogai_upgrades');
+      localStorage.removeItem('mogai_magic_ring');
+      localStorage.removeItem('mogai_coins');
+      localStorage.removeItem('mogai_progress');
+      localStorage.removeItem('mogai_wardrobe');
+    }catch(e){}
+    saveUpgrades();updateStats();applyLook();
+    if(typeof refreshArmor==='function')refreshArmor();
+    if(typeof renderShop==='function')renderShop();
+    hp=maxHp();hudHp.textContent=hp;
+    result.textContent='✅ Всё очищено! Монеты 0, остались только начальные скин, меч и броня. Ник и PIN сохранены.';
+  }
+  else if(c==='/money 0'||c==='/balance 0'){addCoins(-coins);result.textContent='🪙 Баланс: 0';}
+  else if(/^\/money\s+\d+$/.test(c)){const amount=Math.min(1000000,Number(c.split(/\s+/)[1]));addCoins(amount);result.textContent='🪙 +'+amount+' монет';}
+  else if(c==='/heal'){hp=maxHp();hudHp.textContent=hp;result.textContent='❤️ HP восстановлено';}
+  else if(c==='/boss'||c==='/boss2'){
+   if(!playing||!scene||!player){result.textContent='Сначала нажми ИГРАТЬ';return}
+   if(boss){scene.remove(boss.mesh);boss=null}
+   enemies.forEach(e=>scene.remove(e.mesh));enemies=[];level=2;bossStage=c==='/boss2'?1:0;spawnBoss();updateBossBar();result.textContent='👹 Босс появился';
+  }
+  else if(c==='/killboss'){if(!boss){result.textContent='Сейчас босса нет';return}boss.hp=0;updateBossBar();result.textContent='⚔️ HP босса: 0';}
+  else if(c==='/give staff2'){const staff=catalog.find(x=>/staff2|staff_2|посох/i.test(x.id+' '+x.name));if(staff){owned[staff.id]=true;equippedSword=staff.id;saveUpgrades();applyLook();updateStats();result.textContent='🪄 Посох получен'}else result.textContent='Посох №2 не найден в этой версии';}
+  else if(c==='/give ring'){localStorage.setItem('mogai_magic_ring','yes');updateStats();result.textContent='💍 Магическое кольцо получено! +10 к урону мечей.';}
+  else if(c==='/skin'){close(cmdPanel);if(typeof openShop==='function')openShop('skin');result.textContent='👕 Открываем скины';}
+  else if(/^\/level\s+\d+$/.test(c)){const n=Math.max(1,Math.min(100,Number(c.split(/\s+/)[1])));if(typeof progress==='object'){progress.level=n;updateStats();result.textContent='⭐ Уровень '+n}else result.textContent='Уровни недоступны';}
+  else result.textContent='❌ Неизвестная команда. Введи /help';
+ }catch(e){result.textContent='Ошибка: '+e.message}
+}
+by('cmdSend').onclick=run;
+input.addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')run()});input.addEventListener('keyup',e=>e.stopPropagation());
+by('pinInput').addEventListener('keydown',e=>{e.stopPropagation();if(e.key==='Enter')by('pinEnter').click()});by('pinInput').addEventListener('keyup',e=>e.stopPropagation());
+})();
+</script><style>
+#nicknamePanel{display:none;position:fixed;inset:25% 7% auto;z-index:45;background:#19142cf8;border:2px solid #aa87ff;border-radius:16px;padding:18px;text-align:center}
+#nicknamePanel input{font-size:18px;padding:12px;width:95%;border-radius:9px;border:0}
+#nicknamePanel button{margin:8px;padding:10px;border:0;border-radius:9px;background:#6745bb;color:white}
+#shieldBtn{background:#146c9d!important}
+#shieldBtn:disabled{opacity:.45}
+@media(max-width:500px){#wardrobe{top:180px;max-width:240px}#wardrobe button{padding:7px;font-size:11px}#abilities{right:7px;bottom:166px;gap:4px}#abilities button{min-width:64px;padding:8px 4px;font-size:11px}}
+
+/* Hide Shield and Network buttons as requested */
+#shieldBtn,#networkOpen,#networkPanel{display:none!important}
+</style>
+<div id="nicknamePanel"><h2>👤 ТВОЙ НИК</h2><input id="nicknameInput" maxlength="18" placeholder="Напиши ник"><div><button id="nicknameSave">СОХРАНИТЬ</button><button id="nicknameClose">ЗАКРЫТЬ</button></div></div>
+<script>
+let shieldUntil=0,shieldExtra=0,shieldCooldown=0;
+(function(){
+const get=id=>document.getElementById(id);
+let nickname='Игрок';try{nickname=localStorage.getItem('mogai_nickname')||'Игрок'}catch(e){}
+get('nickLabel').textContent=nickname;
+get('nicknameOpen').onclick=()=>{get('nicknamePanel').style.display='block';get('nicknameInput').value=nickname};
+get('nicknameClose').onclick=()=>get('nicknamePanel').style.display='none';
+get('nicknameSave').onclick=()=>{let n=get('nicknameInput').value.trim().slice(0,18);if(!n)return;nickname=n;get('nickLabel').textContent=n;try{localStorage.setItem('mogai_nickname',n)}catch(e){}get('nicknamePanel').style.display='none'};
+get('shieldBtn').onclick=()=>{if(!playing)return;const now=Date.now();if(now<shieldCooldown)return;shieldUntil=now+(4+shieldExtra)*1000;shieldCooldown=now+14000;get('shieldBtn').textContent='🛡️ АКТИВЕН';get('shieldBtn').disabled=true;setTimeout(()=>{get('shieldBtn').textContent='🛡️ ЩИТ';get('shieldBtn').disabled=false},14000)};
+})();
+</script><style>#onlineBox{position:fixed;top:8px;left:50%;transform:translateX(-50%);z-index:60;background:#15152deb;color:white;border:2px solid #6d65ed;border-radius:12px;padding:9px;max-width:95vw;width:270px;font:13px Arial}#onlineBox button,#onlineBox input{font:13px Arial;padding:7px;border-radius:6px;margin:2px}#onlineBox input{width:95px}#onlineBox button{background:#5855cb;color:white;border:0}#onlineBox .status{font-size:11px;opacity:.9}</style><div id="onlineBox"><b>🌐 МОГАЙ ОНЛАЙН</b><div><input id="roomCode" placeholder="Код комнаты" maxlength="8"><button id="createRoom">Создать</button><button id="joinRoom">Войти</button></div><div class="status" id="onlineStatus">Подключение к серверу…</div></div><script src="/online.js"></script></body></html>
